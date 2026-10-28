@@ -1,9 +1,7 @@
 #include "http_api.h"
 #include "config.h"
-#include "hid_actions.h"
+#include "action_handler.h"
 #include "wifi_setup.h"
-
-#include <ArduinoJson.h>
 
 WebServer gServer(HTTP_PORT);
 
@@ -20,18 +18,7 @@ static void handleOptions() {
 
 static void handleHealth() {
   addCors();
-  JsonDocument doc;
-  doc["ok"] = true;
-  doc["device"] = DEVICE_NAME;
-  doc["uptime_ms"] = (uint32_t)millis();
-  doc["ip"] = gWifiIp;
-  doc["mode"] = gWifiMode;
-  doc["screen_width"] = SCREEN_WIDTH;
-  doc["screen_height"] = SCREEN_HEIGHT;
-
-  String out;
-  serializeJson(doc, out);
-  gServer.send(200, "application/json", out);
+  gServer.send(200, "application/json", actionBuildHealthJson());
 }
 
 static void handleAction() {
@@ -48,53 +35,10 @@ static void handleAction() {
     if (gServer.args() > 0) body = gServer.arg(0);
   }
 
-  JsonDocument doc;
-  DeserializationError err = deserializeJson(doc, body);
-  if (err) {
-    gServer.send(400, "application/json",
-                 String("{\"ok\":false,\"error\":\"invalid json: ") + err.c_str() + "\"}");
-    return;
-  }
-
-  JsonArray ops = doc["ops"].as<JsonArray>();
-  if (ops.isNull()) {
-    gServer.send(400, "application/json", "{\"ok\":false,\"error\":\"missing ops array\"}");
-    return;
-  }
-  if ((int)ops.size() > MAX_OPS_PER_REQUEST) {
-    gServer.send(400, "application/json", "{\"ok\":false,\"error\":\"too many ops\"}");
-    return;
-  }
-
-  String errOut;
-  for (JsonObject opObj : ops) {
-    const char* op = opObj["op"] | "";
-    int32_t x = opObj["x"] | 0;
-    int32_t y = opObj["y"] | 0;
-    int32_t x1 = opObj["x1"] | 0;
-    int32_t y1 = opObj["y1"] | 0;
-    int32_t x2 = opObj["x2"] | 0;
-    int32_t y2 = opObj["y2"] | 0;
-    int32_t dy = opObj["dy"] | 0;
-    int32_t dx = opObj["dx"] | 0;
-    bool relative = opObj["relative"] | false;
-    const char* text = opObj["text"] | "";
-    const char* key = opObj["key"] | "";
-    uint32_t ms = opObj["ms"] | 0;
-
-    if (!hidExecOp(String(op), x, y, x1, y1, x2, y2, dy, dx, relative,
-                   String(text), String(key), ms, errOut)) {
-      JsonDocument resp;
-      resp["ok"] = false;
-      resp["error"] = errOut;
-      String out;
-      serializeJson(resp, out);
-      gServer.send(400, "application/json", out);
-      return;
-    }
-  }
-
-  gServer.send(200, "application/json", "{\"ok\":true}");
+  // JSON parsing / validation / op execution lives in action_handler.cpp
+  String out;
+  int code = actionHandleBody(body, out);
+  gServer.send(code, "application/json", out);
 }
 
 static void handleRoot() {

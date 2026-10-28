@@ -1,9 +1,14 @@
 #include "hid_actions.h"
 #include "config.h"
 
+#if defined(HID_STUB)
+// Simulator / host-test build: no USB device controller, log HID events instead.
+#include "hid_stub.h"
+#else
 #include "USB.h"
 #include "USBHIDMouse.h"
 #include "USBHIDKeyboard.h"
+#endif
 
 // Absolute mouse: one HID mouse interface. Relative moves are applied as
 // deltas against the last absolute logical position (see README limits).

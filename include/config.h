@@ -1,5 +1,11 @@
 #pragma once
 
+// Optional local overrides (gitignored). Included FIRST so that every
+// translation unit (main, wifi, hid, http) sees the same SCREEN_*/WIFI_* values.
+#if __has_include("secrets.h")
+#include "secrets.h"
+#endif
+
 // Device identity
 #ifndef DEVICE_NAME
 #define DEVICE_NAME "esp32-s3-hid-bridge"

@@ -3,11 +3,6 @@
 
 #include <WiFi.h>
 
-// Optional secrets (gitignored). If missing, SoftAP-only defaults apply.
-#if __has_include("secrets.h")
-#include "secrets.h"
-#endif
-
 String gWifiMode = "ap";
 String gWifiIp = "0.0.0.0";
 
@@ -25,7 +20,12 @@ static bool trySta() {
 
   Serial.printf("[wifi] STA connecting to '%s'...\n", ssid);
   WiFi.mode(WIFI_STA);
+#if defined(WIFI_STA_CHANNEL)
+  // Optional fixed channel: skips the scan (Wokwi-GUEST is on channel 6).
+  WiFi.begin(ssid, pass, WIFI_STA_CHANNEL);
+#else
   WiFi.begin(ssid, pass);
+#endif
 
   const uint32_t deadline = millis() + 15000;
   while (WiFi.status() != WL_CONNECTED && millis() < deadline) {

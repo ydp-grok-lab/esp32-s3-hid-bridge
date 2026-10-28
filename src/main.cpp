@@ -5,8 +5,8 @@
 #include "wifi_setup.h"
 #include "http_api.h"
 
-#if __has_include("secrets.h")
-#include "secrets.h"
+#ifdef WOKWI_SELFTEST
+#include "wokwi_selftest.h"
 #endif
 
 void setup() {
@@ -23,6 +23,10 @@ void setup() {
   httpBegin();
 
   Serial.println("[boot] ready");
+
+#ifdef WOKWI_SELFTEST
+  wokwiSelftestBegin();
+#endif
 }
 
 void loop() {

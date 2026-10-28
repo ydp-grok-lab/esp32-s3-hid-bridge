@@ -185,6 +185,14 @@ README.md
 
 ---
 
+## Simulation & tests / 仿真与测试
+
+No board needed for compile checks, host unit tests (`pio run -e native -t exec`) and a Wokwi simulation
+(`pio run -e wokwi`, `wokwi-cli .`). USB HID itself can only be verified on real hardware.
+See [docs/WOKWI.md](docs/WOKWI.md).
+
+---
+
 ## Push this repo / 推送
 
 This tree is prepared for:

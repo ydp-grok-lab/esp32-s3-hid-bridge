@@ -1,0 +1,15 @@
+# Wokwi configuration - https://docs.wokwi.com/vscode/project-config
+# Build first:   pio run -e wokwi
+# Run:           wokwi-cli .          (needs WOKWI_CLI_TOKEN)   or   F1 -> "Wokwi: Start Simulator" in VS Code
+[wokwi]
+version = 1
+# Full image (bootloader + partition table + app, 8MB flash) produced by merge_firmware.py
+firmware = '.pio/build/wokwi/firmware.merged.bin'
+elf = '.pio/build/wokwi/firmware.elf'
+
+# Wokwi for VS Code only (NOT supported by wokwi-cli): reach the simulated HTTP server from the host.
+#   curl http://localhost:8180/v1/health
+# Needs a plan with the Private IoT Gateway, see docs/WOKWI.md.
+[[net.forward]]
+from = "localhost:8180"
+to = "target:80"

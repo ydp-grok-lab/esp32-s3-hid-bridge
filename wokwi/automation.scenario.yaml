@@ -1,0 +1,11 @@
+# Wokwi automation scenario (alpha format) - https://docs.wokwi.com/wokwi-ci/automation-scenarios
+# Run:  wokwi-cli . --scenario wokwi/automation.scenario.yaml --timeout 90000
+name: 'HID bridge boot + HTTP self-test'
+version: 1
+author: 'esp32-s3-hid-bridge'
+steps:
+  - wait-serial: '[boot] ready'
+  - wait-serial: '[wifi] STA OK'
+  - wait-serial: '[http] listening'
+  - wait-serial: '[selftest] RESULT pass='
+  - wait-serial: '[selftest] ALL PASSED'
