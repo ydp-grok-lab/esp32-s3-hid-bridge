@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ESP32-S3 HID Bridge</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    button, input { font: inherit; margin: 0.25rem; }
+    pre { background: #111; color: #0f0; padding: 1rem; overflow: auto; min-height: 4rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0; align-items: center; }
+    label { margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <h1>ESP32-S3 HID Bridge</h1>
+  <p>Manual test UI. Plug the board <strong>USB device / OTG</strong> port into the host (phone OTG or Mac).</p>
+  <div class="row">
+    <button id="health">GET /v1/health</button>
+  </div>
+  <div class="row">
+    <label>x <input id="x" type="number" value="960" style="width:5rem"/></label>
+    <label>y <input id="y" type="number" value="540" style="width:5rem"/></label>
+    <button id="click">click</button>
+    <button id="moveAbs">move abs</button>
+  </div>
+  <div class="row">
+    <label>dx <input id="dx" type="number" value="10" style="width:4rem"/></label>
+    <label>dy <input id="dy" type="number" value="-5" style="width:4rem"/></label>
+    <button id="moveRel">move relative</button>
+    <button id="scroll">scroll dy=-3</button>
+  </div>
+  <div class="row">
+    <input id="text" type="text" value="hello" style="flex:1; min-width:8rem"/>
+    <button id="type">type</button>
+    <button id="enter">key enter</button>
+  </div>
+  <pre id="out">ready</pre>
+  <script>
+    const out = document.getElementById('out');
+    async function post(ops) {
+      const r = await fetch('/v1/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ops })
+      });
+      out.textContent = await r.text();
+    }
+    document.getElementById('health').onclick = async () => {
+      const r = await fetch('/v1/health');
+      out.textContent = await r.text();
+    };
+    document.getElementById('click').onclick = () => {
+      const x = +document.getElementById('x').value;
+      const y = +document.getElementById('y').value;
+      post([{ op: 'click', x, y }]);
+    };
+    document.getElementById('moveAbs').onclick = () => {
+      const x = +document.getElementById('x').value;
+      const y = +document.getElementById('y').value;
+      post([{ op: 'move', x, y, relative: false }]);
+    };
+    document.getElementById('moveRel').onclick = () => {
+      const x = +document.getElementById('dx').value;
+      const y = +document.getElementById('dy').value;
+      post([{ op: 'move', x, y, relative: true }]);
+    };
+    document.getElementById('scroll').onclick = () => post([{ op: 'scroll', dy: -3 }]);
+    document.getElementById('type').onclick = () => {
+      post([{ op: 'type', text: document.getElementById('text').value }]);
+    };
+    document.getElementById('enter').onclick = () => post([{ op: 'key', key: 'enter' }]);
+  </script>
+</body>
+</html>
